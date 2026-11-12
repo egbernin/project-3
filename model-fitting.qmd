@@ -1,0 +1,92 @@
+---
+title: "model-fitting"
+format: html
+editor: visual
+---
+
+# INTRODUCTION
+
+*This file goes through the process of fitting and selecting a 'best' model for the data.*
+
+*This dataset includes many variables relating to the Melbourne housing market. The data was scraped from the publicly available records of the Australian real estate website **Domain**.*
+
+# PART ONE: READING DATA AND PREPROCESSING
+
+## READING DATA
+
+*Bringing necessary packages into current session*
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+library(readr)
+library(dplyr)
+```
+
+*Reading in data*
+
+```{r}
+housing_data <- read_csv('MELBOURNE_HOUSE_PRICES_LESS.csv')
+
+#Checking structure of dataset to see the types of variables
+str(housing_data)
+```
+
+## PREPROCESSING
+
+*Checking to see if there are any NAs*
+
+```{r}
+colSums(is.na(housing_data))
+#No NAs!
+```
+
+*Checking unique values of categorical variables (**Postcode** is included in this, although it was read in as a numeric variable)*
+
+```{r}
+unique(housing_data$Suburb)
+unique(housing_data$Address)
+unique(housing_data$Type)
+unique(housing_data$Method)
+unique(housing_data$SellerG)
+unique(housing_data$Date)
+unique(housing_data$Postcode)
+unique(housing_data$Regionname)
+unique(housing_data$CouncilArea)
+```
+
+*Based on what I learned from the **str()** function, there isn't much preprocessing that needs to be done. I would like to change some of the variables into factors and I would like to remove the variables that will not be used for analysis.*
+
+```{r}
+#Changing categorical variables into factors
+housing_data <- housing_data |>
+  mutate(
+    across(
+      c(Type, Method, Regionname, CouncilArea),
+      as.factor
+    )
+  )
+
+str(housing_data)
+```
+
+*Removing variables with too many unique values to be used in analysis*
+
+```{r}
+housing_data <- housing_data |>
+  subset(select = -c(Suburb, Address, SellerG, Date, Postcode))
+
+str(housing_data)
+```
+
+# PART TWO: SPLITTING DATA AND MAKING MODELS
+
+## SPLITTING DATA
+
+```{r}
+#Setting seed to make things reproducible
+set.seed(63023)
+
+#Splitting data
+housing_split <- initial_split(housing_data, prop = 0.70)
+```
