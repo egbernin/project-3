@@ -38,7 +38,7 @@ str(housing_data)
 
 ```{r}
 colSums(is.na(housing_data))
-#No NAs!
+#Some NAs in Price variable, will be removed later on!
 ```
 
 *Checking unique values of categorical variables (**Postcode** is included in this, although it was read in as a numeric variable)*
@@ -53,9 +53,10 @@ unique(housing_data$Date)
 unique(housing_data$Postcode)
 unique(housing_data$Regionname)
 unique(housing_data$CouncilArea)
+#Some of these variables have too many unique values to be useful for analysis. I will be removing the Suburb, Address, SellerG, Date, and Postcode variables.
 ```
 
-*Based on what I learned from the **str()** function, there isn't much preprocessing that needs to be done. I would like to change some of the variables into factors and I would like to remove the variables that will not be used for analysis.*
+*Based on what I learned from the **str()** function and the EDA, I am going to change the categorical variables into factors, remove any variables that have too many unique values to be analyzed, and remove the NAs in the **Price*** *variable.*
 
 ```{r}
 #Changing categorical variables into factors
@@ -79,6 +80,16 @@ housing_data <- housing_data |>
 str(housing_data)
 ```
 
+*Removing NAs in **Price** variable*
+
+```{r}
+clean_data <- subset(housing_data, !is.na(Price))
+
+#Checking NAs again
+colSums(is.na(clean_data))
+#No NAs!
+```
+
 # PART TWO: SPLITTING DATA AND MAKING MODELS
 
 ## SPLITTING DATA
@@ -88,5 +99,147 @@ str(housing_data)
 set.seed(63023)
 
 #Splitting data
-housing_split <- initial_split(housing_data, prop = 0.70)
+housing_split <- initial_split(clean_data, prop = 0.70)
+
+#Checking split
+housing_split
+
+#Naming split data
+housing_test <- testing(housing_split)
+housing_train <- training(housing_split)
 ```
+
+## CREATING & FITTING MODELS
+
+*The response that I would like to analyze is the **Price** variable.*
+
+*Creating 5 cross-validation folds*
+
+```{r}
+housing_folds <- vfold_cv(housing_train, v = 5)
+housing_folds
+```
+
+*Creating recipes*
+
+```{r}
+#Turning factors into dummy variables, everything else stays the same
+recipe_1 <- recipe(
+  Price ~.,
+  data = housing_train
+) |>
+  step_dummy(Type, Method, Regionname, CouncilArea)
+
+recipe_1
+```
+
+### REGRESSION TREE
+
+*A **regression tree** is a method of prediction that splits a predictor space into multiple regions. You can make a different prediction in each region. **Regression trees** are specifically used to predict a **continuous response variable**, with the **mean of observations** within each region as the prediction.*
+
+\*For this method, I'm choosing **RMSE** as the metric. This is becuase
+
+```{r}
+tree_model <- decision_tree(
+  cost_complexity = tune(),
+  tree_depth = tune()
+) |>
+  set_engine('rpart') |>
+  set_mode('regression')
+
+tree_workflow <- workflow() |>
+  add_recipe(recipe_1) |>
+  add_model(tree_model)
+
+tree_grid <- tree_workflow |>
+  tune_grid(
+    resamples = housing_folds,
+    grid = grid_regular(
+      cost_complexity(),
+      tree_depth(),
+      levels = 3
+    )
+  )
+
+best_metrics <- tree_grid |>
+  select_best(metric = 'rmse')
+
+best_metrics
+
+tree_final <- tree_workflow |>
+  finalize_workflow(best_metrics)
+
+tree_fit <- tree_final |>
+  fit(housing_train)
+```
+
+### RANDOM FOREST
+
+*A **random forest** is an ensemble tree method of prediction. It creates multiple trees using **bootstrap aggregation** and averages the results across all trees. This method uses a random group of predictors to analyze each tree, as opposed to using all predictors at each step, which is what the relatively similar **bagged tree** method does.*
+
+```{r}
+forest_model <- rand_forest(
+  mtry = tune(),
+  min_n = tune(),
+  trees = 500
+) |>
+  set_engine('ranger', importance = 'impurity') |>
+  set_mode('regression')
+
+forest_workflow <- workflow() |>
+  add_recipe(recipe_1) |>
+  add_model(forest_model)
+
+forest_grid <- forest_workflow |>
+  tune_grid(
+    resamples = housing_folds,
+    grid = grid_regular(
+      mtry(range = c(2, 7)),
+      min_n(range = c(2, 7)),
+      levels = 3
+    )
+  )
+
+best_metrics <- forest_grid |>
+  select_best(metric = 'rmse')
+
+best_metrics
+
+forest_final <- forest_workflow |>
+  finalize_workflow(best_metrics)
+
+forest_fit <- forest_final |>
+  fit(housing_train)
+```
+
+*Comparing*
+
+```{r}
+last_tree <- last_fit(
+  tree_final,
+  housing_split,
+  metrics = metric_set(
+    yardstick::rmse
+  )
+)
+
+last_forest <- last_fit(
+  forest_final,
+  housing_split,
+  metrics = metric_set(
+    yardstick::rmse
+  )
+)
+
+last_fit_results <- bind_rows(
+  collect_metrics(last_tree) |>
+    mutate(model = 'Regression Tree'),
+  
+  collect_metrics(last_forest) |>
+    mutate(model = 'Random Forest')
+)
+
+last_fit_results
+```
+
+*Our best model is the **Regression Tree** model! It has an RMSE of 313118.5, while the **Random Forest** model has an RMSE of 355015.0. We will use our **Regression Tree** model to fit our full data set.*
