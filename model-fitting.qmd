@@ -6,7 +6,11 @@ editor: visual
 
 # INTRODUCTION
 
-*This file goes through the process of fitting and selecting a 'best' model for the data.*
+AUTHOR: Emma Berninger
+
+DATE: 11/13/2026
+
+PURPOSE: *This file goes through the process of fitting and selecting a 'best' model for the data.*
 
 *This dataset includes many variables relating to the Melbourne housing market. The data was scraped from the publicly available records of the Australian real estate website **Domain**.*
 
@@ -14,7 +18,7 @@ editor: visual
 
 ## READING DATA
 
-*Bringing necessary packages into current session*
+*Bringing necessary packages into current session.*
 
 ```{r}
 library(tidymodels)
@@ -23,7 +27,7 @@ library(readr)
 library(dplyr)
 ```
 
-*Reading in data*
+*Reading in the original data.*
 
 ```{r}
 housing_data <- read_csv('MELBOURNE_HOUSE_PRICES_LESS.csv')
@@ -34,14 +38,14 @@ str(housing_data)
 
 ## PREPROCESSING
 
-*Checking to see if there are any NAs*
+*Checking to see if there are any NAs.*
 
 ```{r}
 colSums(is.na(housing_data))
 #Some NAs in Price variable, will be removed later on!
 ```
 
-*Checking unique values of categorical variables (**Postcode** is included in this, although it was read in as a numeric variable)*
+*Checking unique values of categorical variables (**Postcode** is included in this, although it was read in as a numeric variable).*
 
 ```{r}
 unique(housing_data$Suburb)
@@ -71,7 +75,7 @@ housing_data <- housing_data |>
 str(housing_data)
 ```
 
-*Removing variables with too many unique values to be used in analysis*
+*Removing variables with too many unique values to be used in analysis.*
 
 ```{r}
 housing_data <- housing_data |>
@@ -80,7 +84,7 @@ housing_data <- housing_data |>
 str(housing_data)
 ```
 
-*Removing NAs in **Price** variable*
+*Removing NAs in **Price** variable.*
 
 ```{r}
 clean_data <- subset(housing_data, !is.na(Price))
@@ -113,14 +117,14 @@ housing_train <- training(housing_split)
 
 *The response that I would like to analyze is the **Price** variable.*
 
-*Creating 5 cross-validation folds*
+*Creating 5 cross-validation folds.*
 
 ```{r}
 housing_folds <- vfold_cv(housing_train, v = 5)
 housing_folds
 ```
 
-*Creating recipes*
+*Creating recipe for the model workflow.*
 
 ```{r}
 #Turning factors into dummy variables, everything else stays the same
@@ -135,11 +139,12 @@ recipe_1
 
 ### REGRESSION TREE
 
-*A **regression tree** is a method of prediction that splits a predictor space into multiple regions. You can make a different prediction in each region. **Regression trees** are specifically used to predict a **continuous response variable**, with the **mean of observations** within each region as the prediction.*
+*A **Regression Tree** is a method of prediction that splits a predictor space into multiple regions. You can make a different prediction in each region. **Regression Trees** are specifically used to predict a **continuous response variable**, with the **mean of observations** within each region as the prediction.*
 
-\*For this method, I'm choosing **RMSE** as the metric. This is becuase
+*For this method, I'm choosing **RMSE** as the metric. This is because it will measure the amount of error there is between the true observed values and the predicted values. This makes it a reliable way of measuring how well fit our model is.*
 
 ```{r}
+#Creating model for workflow
 tree_model <- decision_tree(
   cost_complexity = tune(),
   tree_depth = tune()
@@ -147,10 +152,12 @@ tree_model <- decision_tree(
   set_engine('rpart') |>
   set_mode('regression')
 
+#Putting together workflow
 tree_workflow <- workflow() |>
   add_recipe(recipe_1) |>
   add_model(tree_model)
 
+#Making a tuning grid
 tree_grid <- tree_workflow |>
   tune_grid(
     resamples = housing_folds,
@@ -161,23 +168,29 @@ tree_grid <- tree_workflow |>
     )
   )
 
+#Finding best metric value
 best_metrics <- tree_grid |>
   select_best(metric = 'rmse')
 
 best_metrics
 
+#Finalizing workflow
 tree_final <- tree_workflow |>
   finalize_workflow(best_metrics)
 
+#Fitting model with training data
 tree_fit <- tree_final |>
   fit(housing_train)
 ```
 
 ### RANDOM FOREST
 
-*A **random forest** is an ensemble tree method of prediction. It creates multiple trees using **bootstrap aggregation** and averages the results across all trees. This method uses a random group of predictors to analyze each tree, as opposed to using all predictors at each step, which is what the relatively similar **bagged tree** method does.*
+*A **Random Forest** is an ensemble tree method of prediction. It creates multiple trees using **bootstrap aggregation** and averages the results across all trees. This method uses a random group of predictors to analyze each tree, as opposed to using all predictors at each step, which is what the relatively similar **Bagged Tree** method does. This method is similar to the **Regression Tree*** *model in the sense that they both use a branching technique to analyze their data, but **Random Forests** are different due to the fact that they are ensemble trees, meaning that there are multiple trees.*
+
+*I am also using **RMSE** as the metric for this model. The reason for this is the same as when I used this metric for the **Regression Tree**. I believe that the **RMSE** is a good general metric for most models.*
 
 ```{r}
+#Creating model for workflow
 forest_model <- rand_forest(
   mtry = tune(),
   min_n = tune(),
@@ -186,10 +199,12 @@ forest_model <- rand_forest(
   set_engine('ranger', importance = 'impurity') |>
   set_mode('regression')
 
+#Putting together workflow
 forest_workflow <- workflow() |>
   add_recipe(recipe_1) |>
   add_model(forest_model)
 
+#Making a tuning grid
 forest_grid <- forest_workflow |>
   tune_grid(
     resamples = housing_folds,
@@ -200,21 +215,25 @@ forest_grid <- forest_workflow |>
     )
   )
 
+#Finding best metric value
 best_metrics <- forest_grid |>
   select_best(metric = 'rmse')
 
 best_metrics
 
+#Finalizing workflow
 forest_final <- forest_workflow |>
   finalize_workflow(best_metrics)
 
+#Fitting model with training data
 forest_fit <- forest_final |>
   fit(housing_train)
 ```
 
-*Comparing*
+*Comparing models and finding the best fit*
 
 ```{r}
+#Using last_fit to fit regression tree model to entire training set and comparing with test set
 last_tree <- last_fit(
   tree_final,
   housing_split,
@@ -223,6 +242,7 @@ last_tree <- last_fit(
   )
 )
 
+#Using last_fit to fit random forest model to entire training set and comparing with test set
 last_forest <- last_fit(
   forest_final,
   housing_split,
@@ -231,6 +251,7 @@ last_forest <- last_fit(
   )
 )
 
+#Putting results in a tibble
 last_fit_results <- bind_rows(
   collect_metrics(last_tree) |>
     mutate(model = 'Regression Tree'),
@@ -243,3 +264,12 @@ last_fit_results
 ```
 
 *Our best model is the **Regression Tree** model! It has an RMSE of 313118.5, while the **Random Forest** model has an RMSE of 355015.0. We will use our **Regression Tree** model to fit our full data set.*
+
+*Fitting the best model to the full data set*
+
+```{r}
+full_fit <- tree_final |>
+  fit(clean_data)
+
+full_fit
+```
