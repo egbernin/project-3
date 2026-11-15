@@ -9,8 +9,8 @@ load('clean_data.RData')
 #Returning message for info endpoint
 #* @get /info
 function(){
-  'Emma Berninger'
-  'URL for rendered GitHub Pages website: '
+  'Emma Berninger,
+  URL for rendered GitHub Pages website: '
 }
 
 
@@ -32,3 +32,7 @@ function(predictor){
   }
 }
 
+#Three API calls
+#http://127.0.0.1:17984/pred?predictor=Regionname
+#http://127.0.0.1:17984/pred?predictor=Rooms
+#http://127.0.0.1:17984/pred?predictor=Distance
