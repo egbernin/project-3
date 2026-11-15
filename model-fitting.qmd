@@ -25,6 +25,7 @@ library(tidymodels)
 library(tidyverse)
 library(readr)
 library(dplyr)
+library(bundle)
 ```
 
 *Reading in the original data.*
@@ -92,6 +93,12 @@ clean_data <- subset(housing_data, !is.na(Price))
 #Checking NAs again
 colSums(is.na(clean_data))
 #No NAs!
+```
+
+*Saving the full dataset for later use*.
+
+```{r}
+save(clean_data, file = 'clean_data.RData')
 ```
 
 # PART TWO: SPLITTING DATA AND MAKING MODELS
@@ -264,6 +271,12 @@ last_fit_results
 ```
 
 *Our best model is the **Regression Tree** model! It has an RMSE of 313118.5, while the **Random Forest** model has an RMSE of 355015.0. We will use our **Regression Tree** model to fit our full data set.*
+
+*Saving the **tree_final** model for later use.*
+
+```{r}
+save(tree_final, file = 'tree_final.RData')
+```
 
 *Fitting the best model to the full data set*
 
