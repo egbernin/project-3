@@ -8,6 +8,11 @@ load('tree_final.RData')
 full_fit <- tree_final |>
   fit(clean_data)
 
+#Adding title and description
+#* @apiTitle Project 3 API
+#* @apiDescription This API includes a link for the rendered GitHub Pages website as well as an endpoint that returns information about the predictors from this data set.
+
+
 
 #Returning message for info endpoint
 #* @get /info
