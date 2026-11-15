@@ -2,7 +2,7 @@
 library(plumber)
 
 #Reading in data and fitting final model
-
+load('clean_data.RData')
 
 
 
@@ -18,20 +18,17 @@ function(){
 #* @param predictor Type a predictor to return
 #* @get /pred
 function(predictor){
-  data <- clean_data
-  if(is.numeric(data[[predictor]])){
-    value <- mean(data[[predictor]])
-    message <- paste('The mean of', predictor, 'is', value)
-    return(message)
-  }else if(is.factor(data[[predictor]])){
-    pred_table <- table(predictor)
-    value <- names(which.max(pred_table))
-    message <- paste('The most prevalent class of', predictor, 'is', value)
-    return(message)
-  }else{
-    stop('Invalid predictor')
+  if(is.numeric(clean_data[[predictor]])){
+    data <- clean_data[[predictor]]
+    value_num <- mean(data)
+    message_num <- paste('The mean of', predictor, 'is', value_num)
+    return(message_num)
+  }else if(is.factor(clean_data[[predictor]])){
+    factor_data <- clean_data[[predictor]]
+    table_data <- table(factor_data)
+    value_factor <- names(which.max(table_data))
+    message_factor <- paste('The most prevalent class of', predictor, 'is', value_factor)
+    return(message_factor)
   }
 }
-#Three example calls
-
 
