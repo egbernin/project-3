@@ -147,7 +147,7 @@ recipe_1
 
 *A **Regression Tree** is a method of prediction that splits a predictor space into multiple regions. You can make a different prediction in each region. **Regression Trees** are specifically used to predict a **continuous response variable**, with the **mean of observations** within each region as the prediction.*
 
-*For this method, I'm choosing **RMSE** as the metric. This is because it will measure the amount of error there is between the true observed values and the predicted values. This makes it a reliable way of measuring how well fit our model is.*
+*For this method, I'm choosing **RMSE** as the metric. This is because it will measure the amount of error there is between the true observed values and the predicted values. This makes it a reliable way of measuring how well fit our model is. The tuning parameters are **cost_complexity** and **tree_depth**. **Cost_complexity** will prevent the model from overfitting and **tree_depth** will limit the amount of splits that the tree will go through.*
 
 ```{r}
 #Creating model for workflow
@@ -195,7 +195,7 @@ tree_fit
 
 *A **Random Forest** is an ensemble tree method of prediction. It creates multiple trees using **bootstrap aggregation** and averages the results across all trees. This method uses a random group of predictors to analyze each tree, as opposed to using all predictors at each step, which is what the relatively similar **Bagged Tree** method does. This method is similar to the **Regression Tree*** *model in the sense that they both use a branching technique to analyze their data, but **Random Forests** are different due to the fact that they are ensemble trees, meaning that there are multiple trees.*
 
-*I am also using **RMSE** as the metric for this model. The reason for this is the same as when I used this metric for the **Regression Tree**. I believe that the **RMSE** is a good general metric for most models.*
+*I am also using **RMSE** as the metric for this model. The reason for this is the same as when I used this metric for the **Regression Tree**. I believe that the **RMSE** is a good general metric for most models The tuning parameters are **mtry**, **min_n**, and **trees**. **Mtry*** *determines the amount of predictors that are randomly selected for each tree. **Min_n** sets the minimum n to split at any node, which prevents overfitting. **Trees** determines the number of trees produced.*
 
 ```{r}
 #Creating model for workflow
