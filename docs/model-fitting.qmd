@@ -45,11 +45,9 @@ colSums(is.na(housing_data))
 #Some NAs in Price variable, will be removed later on!
 ```
 
-*Checking unique values of categorical variables (**Postcode** is included in this, although it was read in as a numeric variable).*
+*Checking unique values of some of the categorical variables (**Postcode** is included in this, although it was read in as a numeric variable).*
 
 ```{r}
-unique(housing_data$Suburb)
-unique(housing_data$Address)
 unique(housing_data$Type)
 unique(housing_data$Method)
 unique(housing_data$SellerG)
@@ -57,7 +55,7 @@ unique(housing_data$Date)
 unique(housing_data$Postcode)
 unique(housing_data$Regionname)
 unique(housing_data$CouncilArea)
-#Some of these variables have too many unique values to be useful for analysis. I will be removing the Suburb, Address, SellerG, Date, and Postcode variables.
+#Some of the categorical variables have too many unique values to be useful for analysis. I will be removing the Suburb, Address, SellerG, Date, and Postcode variables.
 ```
 
 *Based on what I learned from the **str()** function and the EDA, I am going to change the categorical variables into factors, remove any variables that have too many unique values to be analyzed, and remove the NAs in the **Price*** *variable.*
@@ -100,6 +98,8 @@ colSums(is.na(clean_data))
 save(clean_data, file = 'clean_data.RData')
 ```
 
+*I am going to be predicting the **Price** variable with my model. I am choosing this variable because, in a housing market, it seems to me that the price of the houses is the aspect that professionals in this field would want to accurately predict, as that is the variable that potential buyers are going to focus the most on. I will be using the rest of the variables in the **clean_data** object as predictors.*
+
 # PART TWO: SPLITTING DATA AND MAKING MODELS
 
 ## SPLITTING DATA
@@ -120,8 +120,6 @@ housing_train <- training(housing_split)
 ```
 
 ## CREATING & FITTING MODELS
-
-*The response that I would like to analyze is the **Price** variable.*
 
 *Creating 5 cross-validation folds.*
 
