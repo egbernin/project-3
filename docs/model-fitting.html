@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.36">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>model-fitting</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="model-fitting_files/libs/clipboard/clipboard.min.js"></script>
+<script src="model-fitting_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="model-fitting_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="model-fitting_files/libs/quarto-html/popper.min.js"></script>
+<script src="model-fitting_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="model-fitting_files/libs/quarto-html/anchor.min.js"></script>
+<link href="model-fitting_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="model-fitting_files/libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="model-fitting_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="model-fitting_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="model-fitting_files/libs/bootstrap/bootstrap-138a6193a3bd40baf1e627da441a4734.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">model-fitting</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level1">
+<h1>INTRODUCTION</h1>
+<p>AUTHOR: Emma Berninger</p>
+<p>DATE: 11/13/2026</p>
+<p>PURPOSE: <em>This file goes through the process of fitting and selecting a ‘best’ model for the data.</em></p>
+<p><em>This dataset includes many variables relating to the Melbourne housing market. The data was scraped from the publicly available records of the Australian real estate website <strong>Domain</strong>.</em></p>
+</section>
+<section id="part-one-reading-data-and-preprocessing" class="level1">
+<h1>PART ONE: READING DATA AND PREPROCESSING</h1>
+<section id="reading-data" class="level2">
+<h2 class="anchored" data-anchor-id="reading-data">READING DATA</h2>
+<p><em>Bringing necessary packages into current session.</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching packages ────────────────────────────────────── tidymodels 1.5.0 ──</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>✔ broom        1.0.13     ✔ recipes      1.4.0 
+✔ dials        1.4.4      ✔ rsample      1.3.2 
+✔ dplyr        1.2.1      ✔ tailor       0.1.0 
+✔ ggplot2      4.0.3      ✔ tidyr        1.3.2 
+✔ infer        1.1.0      ✔ tune         2.1.0 
+✔ modeldata    1.6.0      ✔ workflows    1.3.0 
+✔ parsnip      1.6.1      ✔ workflowsets 1.1.1 
+✔ purrr        1.2.2      ✔ yardstick    1.4.0 </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'dials' was built under R version 4.6.1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'modeldata' was built under R version 4.6.1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'parsnip' was built under R version 4.6.1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'recipes' was built under R version 4.6.1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Conflicts ───────────────────────────────────────── tidymodels_conflicts() ──
+✖ purrr::discard() masks scales::discard()
+✖ dplyr::filter()  masks stats::filter()
+✖ dplyr::lag()     masks stats::lag()
+✖ recipes::step()  masks stats::step()</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ forcats   1.0.1     ✔ stringr   1.6.0
+✔ lubridate 1.9.5     ✔ tibble    3.3.1
+✔ readr     2.2.0     </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ readr::col_factor() masks scales::col_factor()
+✖ purrr::discard()    masks scales::discard()
+✖ dplyr::filter()     masks stats::filter()
+✖ stringr::fixed()    masks recipes::fixed()
+✖ dplyr::lag()        masks stats::lag()
+✖ readr::spec()       masks yardstick::spec()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><em>Reading in the original data.</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>housing_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">'MELBOURNE_HOUSE_PRICES_LESS.csv'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 63023 Columns: 13
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (8): Suburb, Address, Type, Method, SellerG, Date, Regionname, CouncilArea
+dbl (5): Rooms, Price, Postcode, Propertycount, Distance
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Checking structure of dataset to see the types of variables</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(housing_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>spc_tbl_ [63,023 × 13] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+ $ Suburb       : chr [1:63023] "Abbotsford" "Abbotsford" "Abbotsford" "Aberfeldie" ...
+ $ Address      : chr [1:63023] "49 Lithgow St" "59A Turner St" "119B Yarra St" "68 Vida St" ...
+ $ Rooms        : num [1:63023] 3 3 3 3 2 2 2 3 6 3 ...
+ $ Type         : chr [1:63023] "h" "h" "h" "h" ...
+ $ Price        : num [1:63023] 1490000 1220000 1420000 1515000 670000 ...
+ $ Method       : chr [1:63023] "S" "S" "S" "S" ...
+ $ SellerG      : chr [1:63023] "Jellis" "Marshall" "Nelson" "Barry" ...
+ $ Date         : chr [1:63023] "1/04/2017" "1/04/2017" "1/04/2017" "1/04/2017" ...
+ $ Postcode     : num [1:63023] 3067 3067 3067 3040 3042 ...
+ $ Regionname   : chr [1:63023] "Northern Metropolitan" "Northern Metropolitan" "Northern Metropolitan" "Western Metropolitan" ...
+ $ Propertycount: num [1:63023] 4019 4019 4019 1543 3464 ...
+ $ Distance     : num [1:63023] 3 3 3 7.5 10.4 10.4 10.4 10.4 14 3 ...
+ $ CouncilArea  : chr [1:63023] "Yarra City Council" "Yarra City Council" "Yarra City Council" "Moonee Valley City Council" ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   Suburb = col_character(),
+  ..   Address = col_character(),
+  ..   Rooms = col_double(),
+  ..   Type = col_character(),
+  ..   Price = col_double(),
+  ..   Method = col_character(),
+  ..   SellerG = col_character(),
+  ..   Date = col_character(),
+  ..   Postcode = col_double(),
+  ..   Regionname = col_character(),
+  ..   Propertycount = col_double(),
+  ..   Distance = col_double(),
+  ..   CouncilArea = col_character()
+  .. )
+ - attr(*, "problems")=&lt;pointer: 0xb76fc98f0&gt; </code></pre>
+</div>
+</div>
+</section>
+<section id="preprocessing" class="level2">
+<h2 class="anchored" data-anchor-id="preprocessing">PREPROCESSING</h2>
+<p><em>Checking to see if there are any NAs.</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(housing_data))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       Suburb       Address         Rooms          Type         Price 
+            0             0             0             0         14590 
+       Method       SellerG          Date      Postcode    Regionname 
+            0             0             0             0             0 
+Propertycount      Distance   CouncilArea 
+            0             0             0 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Some NAs in Price variable, will be removed later on!</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><em>Checking unique values of some of the categorical variables (<strong>Postcode</strong> is included in this, although it was read in as a numeric variable).</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(housing_data<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "h" "t" "u"</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(housing_data<span class="sc">$</span>Method)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "S"  "SP" "PI" "SN" "VB" "PN" "SA" "W"  "SS"</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(housing_data<span class="sc">$</span>SellerG)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1] "Jellis"                      "Marshall"                   
+  [3] "Nelson"                      "Barry"                      
+  [5] "hockingstuart"               "Cayzer"                     
+  [7] "Douglas"                     "Bells"                      
+  [9] "Miles"                       "Barlow"                     
+ [11] "Hunter"                      "Ray"                        
+ [13] "Fletchers"                   "Walshe"                     
+ [15] "Noel"                        "Philip"                     
+ [17] "Buxton"                      "Hodges"                     
+ [19] "Woodards"                    "Point"                      
+ [21] "Stockdale"                   "Purplebricks"               
+ [23] "Biggin"                      "Village"                    
+ [25] "Boran"                       "Jas"                        
+ [27] "Kay"                         "Prof"                       
+ [29] "YPA"                         "Rombotis"                   
+ [31] "Brad"                        "J"                          
+ [33] "RT"                          "Garvey"                     
+ [35] "Prowse"                      "Domain"                     
+ [37] "Sweeney"                     "Donovan"                    
+ [39] "Gary"                        "O'Brien"                    
+ [41] "LJ"                          "Darras"                     
+ [43] "C21"                         "Peter"                      
+ [45] "Del"                         "Jason"                      
+ [47] "Bombay"                      "iSell"                      
+ [49] "Carter"                      "McLennan"                   
+ [51] "buyMyplace"                  "Raine"                      
+ [53] "Mason"                       "Lindellas"                  
+ [55] "Parkes"                      "Caine"                      
+ [57] "hockingstuart/hockingstuart" "Morrison"                   
+ [59] "Chisholm"                    "Whiting"                    
+ [61] "Harcourts"                   "Love"                       
+ [63] "Frank"                       "Rendina"                    
+ [65] "Win"                         "Schroeder"                  
+ [67] "Collins"                     "McGrath"                    
+ [69] "Eview"                       "Aquire"                     
+ [71] "Wilson"                      "LLC"                        
+ [73] "Roger"                       "Darren"                     
+ [75] "Buckingham"                  "Nick"                       
+ [77] "Prof."                       "Greg"                       
+ [79] "Haughton"                    "Edward"                     
+ [81] "Iconek"                      "Sotheby's"                  
+ [83] "Abercromby's"                "Obrien"                     
+ [85] "Grantham"                    "Hoskins"                    
+ [87] "Benchmark"                   "Thomson"                    
+ [89] "Alexkarbon"                  "Matthew"                    
+ [91] "RW"                          "RE"                         
+ [93] "U"                           "MICM"                       
+ [95] "Compton"                     "FN"                         
+ [97] "Westside"                    "Considine"                  
+ [99] "ASL"                         "Reliance"                   
+[101] "Langwell"                    "Gardiner"                   
+[103] "Triwest"                     "Williams"                   
+[105] "Gunn&amp;Co"                     "Moonee"                     
+[107] "McDonald"                    "Appleby"                    
+[109] "Nicholson"                   "Bekdon"                     
+[111] "Metro"                       "Grant's"                    
+[113] "Melbourne"                   "@Realty"                    
+[115] "Ham"                         "Morleys"                    
+[117] "Burnham"                     "LITTLE"                     
+[119] "William"                     "PRDNationwide"              
+[121] "Max"                         "Only"                       
+[123] "Leyton"                      "Maitland"                   
+[125] "Lucas"                       "Rounds"                     
+[127] "Millership"                  "L"                          
+[129] "iTRAK"                       "Emerson"                    
+[131] "People"                      "Paul"                       
+[133] "HAR"                         "JRW"                        
+[135] "Pride"                       "PNJ"                        
+[137] "Harcourts/Biggin"            "Red"                        
+[139] "Area"                        "Skad"                       
+[141] "Finders"                     "Home"                       
+[143] "The"                         "Elite"                      
+[145] "Fletchers/Fletchers"         "Leeburn"                    
+[147] "Benlor"                      "Wyndham"                    
+[149] "Upside"                      "R&amp;H"                        
+[151] "Tim"                         "Besser"                     
+[153] "Branon"                      "Property"                   
+[155] "Savoy"                       "Hamilton"                   
+[157] "Buxton/O'Brien"              "Boutique"                   
+[159] "Collings"                    "iHomes"                     
+[161] "Dawson"                      "David"                      
+[163] "Zed"                         "Follett"                    
+[165] "Exchanged"                   "Rexhepi"                    
+[167] "W.B."                        "Scott"                      
+[169] "Munn"                        "Cocoon"                     
+[171] "United"                      "GL"                         
+[173] "Ruralco"                     "voglwalpole"                
+[175] "Hall"                        "REMAX"                      
+[177] "hockingstuart/Sweeney"       "Ash"                        
+[179] "Gold"                        "Hill"                       
+[181] "Ryder"                       "hockingstuart/Biggin"       
+[183] "Bayside"                     "Janice"                     
+[185] "Harrington"                  "R"                          
+[187] "G&amp;H"                         "Charlton"                   
+[189] "Commercial"                  "PSP"                        
+[191] "Flannagan"                   "Geoff"                      
+[193] "S&amp;L"                         "hockingstuart/Cayzer"       
+[195] "Leading"                     "Real"                       
+[197] "OBrien"                      "LJH"                        
+[199] "Le"                          "Nguyen"                     
+[201] "Rodney"                      "Unity"                      
+[203] "Steller"                     "Jim"                        
+[205] "Ace"                         "JMRE"                       
+[207] "Castran"                     "WeSell"                     
+[209] "M.J"                         "iProperty"                  
+[211] "Hayeswinckle"                "Nardella"                   
+[213] "Brace"                       "Century"                    
+[215] "Ross"                        "Rayner"                     
+[217] "Asset"                       "Allens"                     
+[219] "Zahn"                        "Sanctuary"                  
+[221] "Dingle"                      "VICPROP"                    
+[223] "Crane"                       "One"                        
+[225] "Kaye"                        "Community"                  
+[227] "Meadows"                     "Just"                       
+[229] "McNaughton"                  "Cooper"                     
+[231] "Black"                       "North"                      
+[233] "Naison"                      "Reach"                      
+[235] "Homes"                       "New"                        
+[237] "D'Aprano"                    "Len"                        
+[239] "Leased"                      "Blue"                       
+[241] "hockingstuart/Village"       "Ascend"                     
+[243] "Ken"                         "Buxton/Buxton"              
+[245] "Daniel"                      "Inner"                      
+[247] "Maddison"                    "Peake"                      
+[249] "Tiernan's"                   "Re"                         
+[251] "Professionals"               "Holland"                    
+[253] "Avion"                       "Reed"                       
+[255] "hockingstuart/Barry"         "K.R.Peters"                 
+[257] "Christopher"                 "Joseph"                     
+[259] "Belmar"                      "Pagan"                      
+[261] "Galldon"                     "Beller"                     
+[263] "Dixon"                       "Abley"                      
+[265] "Chambers"                    "Marvelli"                   
+[267] "Kennedy"                     "Harrison"                   
+[269] "Trimson"                     "Gross"                      
+[271] "Parkinson"                   "Johnston"                   
+[273] "hockingstuart/Harcourts"     "Bowman"                     
+[275] "Sell"                        "Charter"                    
+[277] "MJ"                          "Hodges/Hodges"              
+[279] "Buxton/Marshall"             "A"                          
+[281] "Collin"                      "Watermark"                  
+[283] "Matrix"                      "Calder"                     
+[285] "Thomas"                      "Shape"                      
+[287] "Spencer"                     "Space"                      
+[289] "McGrath/Langwell"            "Burns"                      
+[291] "Weda"                        "JK"                         
+[293] "Mandy"                       "Airport"                    
+[295] "Foxtons"                     "Buxton/Advantage"           
+[297] "Nexus"                       "First"                      
+[299] "Bell"                        "Arbee"                      
+[301] "Fletchers/Jellis"            "Alex"                       
+[303] "C"                           "Create"                     
+[305] "Weston"                      "TTS"                        
+[307] "Assisi"                      "McEwing"                    
+[309] "Raine&amp;Horne"                 "Shine"                      
+[311] "Market"                      "Coad"                       
+[313] "Ausin"                       "Tanner"                     
+[315] "Ristic"                      "Bullen"                     
+[317] "WHITEFOX"                    "PRD"                        
+[319] "Landfield"                   "Full"                       
+[321] "MSM"                         "Anderson"                   
+[323] "Kelly"                       "VICProp"                    
+[325] "Hooper"                      "JY"                         
+[327] "Upper"                       "Xynergy"                    
+[329] "VicHomes"                    "TRUE"                       
+[331] "Vicprop"                     "UFirst"                     
+[333] "Enrich"                      "Sweeney/Advantage"          
+[335] "Justin"                      "Hodges/Buxton"              
+[337] "Nicholls"                    "hockingstuart/Advantage"    
+[339] "Open"                        "Leaders"                    
+[341] "Sterling"                    "CarlinSmith"                
+[343] "Mega"                        "Sprint"                     
+[345] "McGrath/Noel"                "Wood"                       
+[347] "Fletchers/One"               "Quinta"                     
+[349] "Flanagan"                    "Jacobs"                     
+[351] "Walsh"                       "Woodards/hockingstuart"     
+[353] "Mitchell"                    "hockingstuart/Buxton"       
+[355] "P"                           "Silver"                     
+[357] "Surreal"                     "Judith"                     
+[359] "MIG"                         "hockingstuart/ASL"          
+[361] "Kontek"                      "Harcourts/Harcourts"        
+[363] "Keatings"                    "Smart"                      
+[365] "O'Donoghues"                 "Changing"                   
+[367] "Owen"                        "Australian"                 
+[369] "CASTRAN"                     "Peninsula"                  
+[371] "Gr8"                         "Outlook"                    
+[373] "Davita"                      "Lynda"                      
+[375] "Lazogas"                     "Little"                     
+[377] "Town"                        "Conley"                     
+[379] "hockingstuart/HAR"           "Propertyau"                 
+[381] "Batty"                       "Sutherland"                 
+[383] "Redina"                      "Allan"                      
+[385] "Hume"                        "Knight"                     
+[387] "Blackbird"                   "Oriental"                   
+[389] "Better"                      "Royston"                    
+[391] "Haven"                       "Platinum"                   
+[393] "Revolve"                     "VicBrokers"                 
+[395] "Richardson"                  "Harcourts/Barry"            
+[397] "Harcourts/LJ"                "Pellegrino"                 
+[399] "Landmark"                    "Doyen"                      
+[401] "Coventry"                    "Evolve"                     
+[403] "Clairmont"                   "iOne"                       
+[405] "hockingstuart/Kerr"          "Jupiter"                    
+[407] "Rosin"                       "McGrath/Buxton"             
+[409] "hockingstuart/Marshall"      "McGrath/First"              
+[411] "Victory"                     "Aumeca"                     
+[413] "Mindacom"                    "Karen"                      
+[415] "AIME"                        "Luxe"                       
+[417] "Fletchers/J"                 "Meallin"                    
+[419] "Malvern"                     "Mark"                       
+[421] "Bradly"                      "Sandhurst"                  
+[423] "Buxton/Find"                 "Christou"                   
+[425] "Craig"                       "Sahara"                     
+[427] "We"                          "Jamie"                      
+[429] "Sweeney/Burnham"             "Eric"                       
+[431] "H"                           "Regal"                      
+[433] "Luxton"                      "Steveway"                   
+[435] "SheSELLS"                    "hockingstuart/Purplebricks" 
+[437] "Impact"                      "Realty"                     
+[439] "Aussie"                      "Patterson"                  
+[441] "SN"                          "Waterfront"                 
+[443] "Methven"                     "hockingstuart/Jellis"       
+[445] "Woodards/Peter"              "Buxton/hockingstuart"       
+[447] "Kerr"                        "Nicholas"                   
+[449] "Conquest"                    "Park"                       
+[451] "Auv"                         "For"                        
+[453] "Weast"                       "Pavilion"                   
+[455] "Integrity"                   "Private/Tiernan's"          
+[457] "Harcourts/YPA"               "T"                          
+[459] "Prime"                       "Free"                       
+[461] "Veitch"                      "John"                       
+[463] "Joe"                         "Bustin"                     
+[465] "Vic"                         "Direct"                     
+[467] "Bayview"                     "Leader"                     
+[469] "Oak"                         "Can"                        
+[471] "Gellibrand"                  "White"                      
+[473] "Jeffrey"                     "Icon"                       
+[475] "Buxton/Hodges"               "Living"                     </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(housing_data<span class="sc">$</span>Date)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1] "1/04/2017"  "1/07/2017"  "1/09/2018"  "2/06/2018"  "3/02/2018" 
+  [6] "3/03/2018"  "3/06/2017"  "3/09/2016"  "3/09/2017"  "3/12/2016" 
+ [11] "4/02/2016"  "4/03/2017"  "4/06/2016"  "4/08/2018"  "4/11/2017" 
+ [16] "5/05/2018"  "6/01/2018"  "6/05/2017"  "6/08/2016"  "6/10/2018" 
+ [21] "7/04/2018"  "7/05/2016"  "7/07/2018"  "7/10/2017"  "7/11/2016" 
+ [26] "8/01/2018"  "8/04/2017"  "8/07/2017"  "8/09/2018"  "8/10/2016" 
+ [31] "9/06/2018"  "9/09/2017"  "9/12/2017"  "10/02/2018" "10/03/2018"
+ [36] "10/09/2016" "10/12/2016" "11/02/2017" "11/03/2017" "11/08/2018"
+ [41] "11/11/2017" "12/05/2018" "12/06/2016" "12/08/2017" "12/11/2016"
+ [46] "13/05/2017" "13/08/2016" "13/10/2018" "14/04/2018" "14/05/2016"
+ [51] "14/07/2018" "14/10/2017" "15/07/2017" "15/09/2018" "15/10/2016"
+ [56] "16/04/2016" "16/06/2018" "16/07/2016" "16/09/2017" "16/12/2017"
+ [61] "17/02/2018" "17/03/2018" "17/06/2017" "17/09/2016" "18/03/2017"
+ [66] "18/06/2016" "18/08/2018" "18/11/2017" "19/05/2018" "19/08/2017"
+ [71] "19/11/2016" "20/01/2018" "20/05/2017" "21/04/2018" "21/07/2018"
+ [76] "21/10/2017" "22/04/2017" "22/05/2016" "22/07/2017" "22/08/2016"
+ [81] "22/09/2018" "23/04/2016" "23/06/2018" "23/09/2017" "23/12/2017"
+ [86] "24/02/2018" "24/03/2018" "24/06/2017" "24/09/2016" "25/02/2017"
+ [91] "25/08/2018" "25/11/2017" "26/05/2018" "26/07/2016" "26/08/2017"
+ [96] "27/01/2018" "27/05/2017" "27/06/2016" "27/11/2016" "28/01/2016"
+[101] "28/04/2018" "28/05/2016" "28/07/2018" "28/08/2016" "28/10/2017"
+[106] "29/04/2017" "29/07/2017" "30/06/2018" "30/07/2016" "30/09/2017"
+[111] "30/12/2017" "31/03/2018"</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(housing_data<span class="sc">$</span>Postcode)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1] 3067 3040 3042 3021 3206 3020 3078 3018 3028 3025 3143 3032 3147 3195 3049
+ [16] 3034 3103 3104 3153 3193 3081 3204 3165 3130 3196 3155 3128 3019 3186 3187
+ [31] 3047 3056 3057 3055 3105 3083 3125 3151 3124 3126 3053 3054 3163 3023 3197
+ [46] 3201 3145 3161 3162 3148 3192 3756 3168 3169 3068 3058 3066 3064 3977 3136
+ [61] 3175 3340 3037 3089 3172 3108 3109 3111 3084 3002 3185 3095 3184 3802 3076
+ [76] 3041 3060 3156 3065 3011 3131 3199 3200 3043 3146 3150 3046 3088 3059 3188
+ [91] 3122 3135 3190 3029 3166 3079 3038 3033 3031 3101 3102 3173 3012 3180 3337
+[106] 3075 3140 3085 3144 3048 3000 3194 3754 3082 3132 3094 3039 3189 3138 3149
+[121] 3170 3805 3015 3174 3051 3070 3167 3810 3052 3044 3090 3030 3207 3181 3072
+[136] 3073 3121 3431 3134 3178 3191 3179 3198 3205 3752 3141 3006 3171 3182 3127
+[151] 3106 3107 3074 3071 3142 3133 3152 3113 3003 3016 3750 3024 3013 3022 3806
+[166] 3978 3782 3177 3437 3803 3777 3093 3975 3338 3765 3335 3429 3160 3154 3027
+[181] 3123 3036 3116 3976 3087 3786 3183 3061 3427 3202 3910 3139 3008 3096 3137
+[196] 3438 3341 3063 3158 3755 3115 3807 3783 3759 3809 3796 3099 3757 3793 3795
+[211] 3799 3781 3791 3428 3788 3114 3766 3808 3770 3775 3767 3159 3980 3091 3797</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(housing_data<span class="sc">$</span>Regionname)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Northern Metropolitan"      "Western Metropolitan"      
+[3] "Southern Metropolitan"      "South-Eastern Metropolitan"
+[5] "Eastern Metropolitan"       "Northern Victoria"         
+[7] "Western Victoria"           "Eastern Victoria"          </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(housing_data<span class="sc">$</span>CouncilArea)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "Yarra City Council"             "Moonee Valley City Council"    
+ [3] "Brimbank City Council"          "Port Phillip City Council"     
+ [5] "Darebin City Council"           "Hobsons Bay City Council"      
+ [7] "Stonnington City Council"       "Boroondara City Council"       
+ [9] "Monash City Council"            "Kingston City Council"         
+[11] "Hume City Council"              "Maroondah City Council"        
+[13] "Bayside City Council"           "Banyule City Council"          
+[15] "Glen Eira City Council"         "Whitehorse City Council"       
+[17] "Knox City Council"              "Maribyrnong City Council"      
+[19] "Moreland City Council"          "Manningham City Council"       
+[21] "Melbourne City Council"         "Melton City Council"           
+[23] "Frankston City Council"         "Macedon Ranges Shire Council"  
+[25] "Casey City Council"             "Greater Dandenong City Council"
+[27] "Moorabool Shire Council"        "Nillumbik Shire Council"       
+[29] "Whittlesea City Council"        "Wyndham City Council"          
+[31] "Yarra Ranges Shire Council"     "Cardinia Shire Council"        
+[33] "Mitchell Shire Council"         "Murrindindi Shire Council"     </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Some of the categorical variables have too many unique values to be useful for analysis. I will be removing the Suburb, Address, SellerG, Date, and Postcode variables.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><em>Based on what I learned from the <strong>str()</strong> function and the EDA, I am going to change the categorical variables into factors, remove any variables that have too many unique values to be analyzed, and remove the NAs in the <strong>Price</strong></em> <em>variable.</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Changing categorical variables into factors</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>housing_data <span class="ot">&lt;-</span> housing_data <span class="sc">|&gt;</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">across</span>(</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">c</span>(Type, Method, Regionname, CouncilArea),</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>      as.factor</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(housing_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [63,023 × 13] (S3: tbl_df/tbl/data.frame)
+ $ Suburb       : chr [1:63023] "Abbotsford" "Abbotsford" "Abbotsford" "Aberfeldie" ...
+ $ Address      : chr [1:63023] "49 Lithgow St" "59A Turner St" "119B Yarra St" "68 Vida St" ...
+ $ Rooms        : num [1:63023] 3 3 3 3 2 2 2 3 6 3 ...
+ $ Type         : Factor w/ 3 levels "h","t","u": 1 1 1 1 1 2 3 1 1 1 ...
+ $ Price        : num [1:63023] 1490000 1220000 1420000 1515000 670000 ...
+ $ Method       : Factor w/ 9 levels "PI","PN","S",..: 3 3 3 3 3 3 3 6 1 3 ...
+ $ SellerG      : chr [1:63023] "Jellis" "Marshall" "Nelson" "Barry" ...
+ $ Date         : chr [1:63023] "1/04/2017" "1/04/2017" "1/04/2017" "1/04/2017" ...
+ $ Postcode     : num [1:63023] 3067 3067 3067 3040 3042 ...
+ $ Regionname   : Factor w/ 8 levels "Eastern Metropolitan",..: 3 3 3 7 7 7 7 7 7 6 ...
+ $ Propertycount: num [1:63023] 4019 4019 4019 1543 3464 ...
+ $ Distance     : num [1:63023] 3 3 3 7.5 10.4 10.4 10.4 10.4 14 3 ...
+ $ CouncilArea  : Factor w/ 34 levels "Banyule City Council",..: 33 33 33 23 23 23 23 23 4 28 ...</code></pre>
+</div>
+</div>
+<p><em>Removing variables with too many unique values to be used in analysis.</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>housing_data <span class="ot">&lt;-</span> housing_data <span class="sc">|&gt;</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(<span class="at">select =</span> <span class="sc">-</span><span class="fu">c</span>(Suburb, Address, SellerG, Date, Postcode))</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(housing_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [63,023 × 8] (S3: tbl_df/tbl/data.frame)
+ $ Rooms        : num [1:63023] 3 3 3 3 2 2 2 3 6 3 ...
+ $ Type         : Factor w/ 3 levels "h","t","u": 1 1 1 1 1 2 3 1 1 1 ...
+ $ Price        : num [1:63023] 1490000 1220000 1420000 1515000 670000 ...
+ $ Method       : Factor w/ 9 levels "PI","PN","S",..: 3 3 3 3 3 3 3 6 1 3 ...
+ $ Regionname   : Factor w/ 8 levels "Eastern Metropolitan",..: 3 3 3 7 7 7 7 7 7 6 ...
+ $ Propertycount: num [1:63023] 4019 4019 4019 1543 3464 ...
+ $ Distance     : num [1:63023] 3 3 3 7.5 10.4 10.4 10.4 10.4 14 3 ...
+ $ CouncilArea  : Factor w/ 34 levels "Banyule City Council",..: 33 33 33 23 23 23 23 23 4 28 ...</code></pre>
+</div>
+</div>
+<p><em>Removing NAs in <strong>Price</strong> variable.</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>clean_data <span class="ot">&lt;-</span> <span class="fu">subset</span>(housing_data, <span class="sc">!</span><span class="fu">is.na</span>(Price))</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Checking NAs again</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(clean_data))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        Rooms          Type         Price        Method    Regionname 
+            0             0             0             0             0 
+Propertycount      Distance   CouncilArea 
+            0             0             0 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">#No NAs!</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><em>Saving the full dataset for later use</em>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(clean_data, <span class="at">file =</span> <span class="st">'clean_data.RData'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><em>I am going to be predicting the <strong>Price</strong> variable with my model. I am choosing this variable because, in a housing market, it seems to me that the price of the houses is the aspect that professionals in this field would want to accurately predict, as that is the variable that potential buyers are going to focus the most on. I will be using the rest of the variables in the <strong>clean_data</strong> object as predictors.</em></p>
+</section>
+</section>
+<section id="part-two-splitting-data-and-making-models" class="level1">
+<h1>PART TWO: SPLITTING DATA AND MAKING MODELS</h1>
+<section id="splitting-data" class="level2">
+<h2 class="anchored" data-anchor-id="splitting-data">SPLITTING DATA</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Setting seed to make things reproducible</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">63023</span>)</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Splitting data</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>housing_split <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(clean_data, <span class="at">prop =</span> <span class="fl">0.70</span>)</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a><span class="co">#Checking split</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>housing_split</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;Training/Testing/Total&gt;
+&lt;33903/14530/48433&gt;</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Naming split data</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>housing_test <span class="ot">&lt;-</span> <span class="fu">testing</span>(housing_split)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>housing_train <span class="ot">&lt;-</span> <span class="fu">training</span>(housing_split)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="creating-fitting-models" class="level2">
+<h2 class="anchored" data-anchor-id="creating-fitting-models">CREATING &amp; FITTING MODELS</h2>
+<p><em>Creating 5 cross-validation folds.</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>housing_folds <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(housing_train, <span class="at">v =</span> <span class="dv">5</span>)</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>housing_folds</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#  5-fold cross-validation 
+# A tibble: 5 × 2
+  splits               id   
+  &lt;list&gt;               &lt;chr&gt;
+1 &lt;split [27122/6781]&gt; Fold1
+2 &lt;split [27122/6781]&gt; Fold2
+3 &lt;split [27122/6781]&gt; Fold3
+4 &lt;split [27123/6780]&gt; Fold4
+5 &lt;split [27123/6780]&gt; Fold5</code></pre>
+</div>
+</div>
+<p><em>Creating recipe for the model workflow.</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Turning factors into dummy variables, everything else stays the same</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>recipe_1 <span class="ot">&lt;-</span> <span class="fu">recipe</span>(</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  Price <span class="sc">~</span>.,</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> housing_train</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(Type, Method, Regionname, CouncilArea)</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>recipe_1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Recipe ──────────────────────────────────────────────────────────────────────</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Inputs </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Number of variables by role</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>outcome:   1
+predictor: 7</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Operations </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>• Dummy variables from: Type, Method, Regionname, CouncilArea</code></pre>
+</div>
+</div>
+<section id="regression-tree" class="level3">
+<h3 class="anchored" data-anchor-id="regression-tree">REGRESSION TREE</h3>
+<p><em>A <strong>Regression Tree</strong> is a method of prediction that splits a predictor space into multiple regions. You can make a different prediction in each region. <strong>Regression Trees</strong> are specifically used to predict a <strong>continuous response variable</strong>, with the <strong>mean of observations</strong> within each region as the prediction.</em></p>
+<p><em>For this method, I’m choosing <strong>RMSE</strong> as the metric. This is because it will measure the amount of error there is between the true observed values and the predicted values. This makes it a reliable way of measuring how well fit our model is. The tuning parameters are <strong>cost_complexity</strong> and <strong>tree_depth</strong>. <strong>Cost_complexity</strong> will prevent the model from overfitting and <strong>tree_depth</strong> will limit the amount of splits that the tree will go through.</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Creating model for workflow</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>tree_model <span class="ot">&lt;-</span> <span class="fu">decision_tree</span>(</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">cost_complexity =</span> <span class="fu">tune</span>(),</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">tree_depth =</span> <span class="fu">tune</span>()</span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">'rpart'</span>) <span class="sc">|&gt;</span></span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">'regression'</span>)</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a><span class="co">#Putting together workflow</span></span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>tree_workflow <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(recipe_1) <span class="sc">|&gt;</span></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(tree_model)</span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a><span class="co">#Making a tuning grid</span></span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a>tree_grid <span class="ot">&lt;-</span> tree_workflow <span class="sc">|&gt;</span></span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tune_grid</span>(</span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">resamples =</span> housing_folds,</span>
+<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">grid =</span> <span class="fu">grid_regular</span>(</span>
+<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cost_complexity</span>(),</span>
+<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">tree_depth</span>(),</span>
+<span id="cb58-21"><a href="#cb58-21" aria-hidden="true" tabindex="-1"></a>      <span class="at">levels =</span> <span class="dv">3</span></span>
+<span id="cb58-22"><a href="#cb58-22" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb58-23"><a href="#cb58-23" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb58-24"><a href="#cb58-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-25"><a href="#cb58-25" aria-hidden="true" tabindex="-1"></a><span class="co">#Finding best metric value</span></span>
+<span id="cb58-26"><a href="#cb58-26" aria-hidden="true" tabindex="-1"></a>best_metrics <span class="ot">&lt;-</span> tree_grid <span class="sc">|&gt;</span></span>
+<span id="cb58-27"><a href="#cb58-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select_best</span>(<span class="at">metric =</span> <span class="st">'rmse'</span>)</span>
+<span id="cb58-28"><a href="#cb58-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-29"><a href="#cb58-29" aria-hidden="true" tabindex="-1"></a>best_metrics</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+  cost_complexity tree_depth .config        
+            &lt;dbl&gt;      &lt;int&gt; &lt;chr&gt;          
+1    0.0000000001         15 pre0_mod3_post0</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Finalizing workflow</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>tree_final <span class="ot">&lt;-</span> tree_workflow <span class="sc">|&gt;</span></span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">finalize_workflow</span>(best_metrics)</span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Fitting model with training data</span></span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>tree_fit <span class="ot">&lt;-</span> tree_final <span class="sc">|&gt;</span></span>
+<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit</span>(housing_train)</span>
+<span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a>tree_fit</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>══ Workflow [trained] ══════════════════════════════════════════════════════════
+Preprocessor: Recipe
+Model: decision_tree()
+
+── Preprocessor ────────────────────────────────────────────────────────────────
+1 Recipe Step
+
+• step_dummy()
+
+── Model ───────────────────────────────────────────────────────────────────────
+n= 33903 
+
+node), split, n, deviance, yval
+      * denotes terminal node
+
+    1) root 33903 1.198502e+16  999075.3  
+      2) Regionname_Southern.Metropolitan&lt; 0.5 25041 4.146374e+15  865977.0  
+        4) Rooms&lt; 3.5 17494 1.925965e+15  781188.7  
+          8) Type_u&gt;=0.5 3693 1.703573e+14  572211.2  
+           16) Rooms&lt; 2.5 2803 8.375095e+13  524034.7  
+             32) Rooms&lt; 1.5 554 6.537724e+12  383260.1  
+               64) Distance&gt;=3.25 366 2.343019e+12  347044.8  
+                128) CouncilArea_Maribyrnong.City.Council&gt;=0.5 45 2.792718e+11  289911.1  
+                  256) Method_SP&lt; 0.5 32 1.624087e+11  271515.6  
+                    512) Method_S&lt; 0.5 17 6.840094e+10  240058.8 *
+                    513) Method_S&gt;=0.5 15 5.812083e+10  307166.7 *
+                  257) Method_SP&gt;=0.5 13 7.937950e+10  335192.2 *
+                129) CouncilArea_Maribyrnong.City.Council&lt; 0.5 321 1.896263e+12  355054.2  
+                  258) Distance&gt;=6.45 163 7.130161e+11  341344.4  
+                    516) Regionname_Western.Metropolitan&gt;=0.5 45 2.454162e+11  312866.7  
+                     1032) Propertycount&lt; 2238 17 7.140212e+10  271411.8 *
+                     1033) Propertycount&gt;=2238 28 1.270620e+11  338035.7  
+                       2066) Method_SP&lt; 0.5 19 6.751763e+10  332421.1 *
+                       2067) Method_SP&gt;=0.5 9 5.768089e+10  349888.9 *
+                    517) Regionname_Western.Metropolitan&lt; 0.5 118 4.171884e+11  352204.6  
+                     1034) Regionname_Northern.Metropolitan&gt;=0.5 71 2.296666e+11  339114.7  
+                       2068) Method_SP&lt; 0.5 57 1.732477e+11  332232.5  
+                         4136) CouncilArea_Darebin.City.Council&lt; 0.5 10 1.242050e+10  303000.0 *
+                         4137) CouncilArea_Darebin.City.Council&gt;=0.5 47 1.504637e+11  338452.1  
+                           8274) Method_S&lt; 0.5 16 4.366386e+10  315843.8 *
+                           8275) Method_S&gt;=0.5 31 9.440061e+10  350121.0  
+                            16550) Propertycount&gt;=10037 15 4.717672e+10  338850.0 *
+                            16551) Propertycount&lt; 10037 16 4.353194e+10  360687.5 *
+                       2069) Method_SP&gt;=0.5 14 4.272694e+10  367135.2 *
+                     1035) Regionname_Northern.Metropolitan&lt; 0.5 47 1.569785e+11  371978.7  
+                       2070) Distance&gt;=10.55 37 1.131213e+11  359364.9  
+                         4140) Method_S&lt; 0.5 16 9.237438e+09  324312.5 *
+                         4141) Method_S&gt;=0.5 21 6.924714e+10  386071.4  
+                           8282) Propertycount&gt;=5624.5 12 3.837692e+10  372083.3 *
+                           8283) Propertycount&lt; 5624.5 9 2.539156e+10  404722.2 *
+                       2071) Distance&lt; 10.55 10 1.618802e+10  418650.0 *
+                  259) Distance&lt; 6.45 158 1.121003e+12  369197.8  
+                    518) Method_S&lt; 0.5 85 3.479700e+11  349623.5  
+                     1036) Propertycount&lt; 11641 71 1.264768e+11  340288.7  
+                       2072) Distance&gt;=4.15 32 5.998493e+10  321796.9  
+                         4144) CouncilArea_Darebin.City.Council&lt; 0.5 21 2.324667e+10  302666.7  
+                           8288) Method_SP&lt; 0.5 13 5.212000e+09  288000.0 *
+                           8289) Method_SP&gt;=0.5 8 1.069400e+10  326500.0 *
+                         4145) CouncilArea_Darebin.City.Council&gt;=0.5 11 1.438114e+10  358318.2 *
+                       2073) Distance&lt; 4.15 39 4.657119e+10  355461.5  
+
+...
+and 2690 more lines.</code></pre>
+</div>
+</div>
+</section>
+<section id="random-forest" class="level3">
+<h3 class="anchored" data-anchor-id="random-forest">RANDOM FOREST</h3>
+<p><em>A <strong>Random Forest</strong> is an ensemble tree method of prediction. It creates multiple trees using <strong>bootstrap aggregation</strong> and averages the results across all trees. This method uses a random group of predictors to analyze each tree, as opposed to using all predictors at each step, which is what the relatively similar <strong>Bagged Tree</strong> method does. This method is similar to the <strong>Regression Tree</strong></em> <em>model in the sense that they both use a branching technique to analyze their data, but <strong>Random Forests</strong> are different due to the fact that they are ensemble trees, meaning that there are multiple trees.</em></p>
+<p><em>I am also using <strong>RMSE</strong> as the metric for this model. The reason for this is the same as when I used this metric for the <strong>Regression Tree</strong>. I believe that the <strong>RMSE</strong> is a good general metric for most models The tuning parameters are <strong>mtry</strong>, <strong>min_n</strong>, and <strong>trees</strong>. <strong>Mtry</strong></em> <em>determines the amount of predictors that are randomly selected for each tree. <strong>Min_n</strong> sets the minimum n to split at any node, which prevents overfitting. <strong>Trees</strong> determines the number of trees produced.</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Creating model for workflow</span></span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>forest_model <span class="ot">&lt;-</span> <span class="fu">rand_forest</span>(</span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">mtry =</span> <span class="fu">tune</span>(),</span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">min_n =</span> <span class="fu">tune</span>(),</span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">trees =</span> <span class="dv">500</span></span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">'ranger'</span>, <span class="at">importance =</span> <span class="st">'impurity'</span>) <span class="sc">|&gt;</span></span>
+<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">'regression'</span>)</span>
+<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a><span class="co">#Putting together workflow</span></span>
+<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a>forest_workflow <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
+<span id="cb62-12"><a href="#cb62-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(recipe_1) <span class="sc">|&gt;</span></span>
+<span id="cb62-13"><a href="#cb62-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(forest_model)</span>
+<span id="cb62-14"><a href="#cb62-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-15"><a href="#cb62-15" aria-hidden="true" tabindex="-1"></a><span class="co">#Making a tuning grid</span></span>
+<span id="cb62-16"><a href="#cb62-16" aria-hidden="true" tabindex="-1"></a>forest_grid <span class="ot">&lt;-</span> forest_workflow <span class="sc">|&gt;</span></span>
+<span id="cb62-17"><a href="#cb62-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tune_grid</span>(</span>
+<span id="cb62-18"><a href="#cb62-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">resamples =</span> housing_folds,</span>
+<span id="cb62-19"><a href="#cb62-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">grid =</span> <span class="fu">grid_regular</span>(</span>
+<span id="cb62-20"><a href="#cb62-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mtry</span>(<span class="at">range =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">7</span>)),</span>
+<span id="cb62-21"><a href="#cb62-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">min_n</span>(<span class="at">range =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">7</span>)),</span>
+<span id="cb62-22"><a href="#cb62-22" aria-hidden="true" tabindex="-1"></a>      <span class="at">levels =</span> <span class="dv">3</span></span>
+<span id="cb62-23"><a href="#cb62-23" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb62-24"><a href="#cb62-24" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb62-25"><a href="#cb62-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-26"><a href="#cb62-26" aria-hidden="true" tabindex="-1"></a><span class="co">#Finding best metric value</span></span>
+<span id="cb62-27"><a href="#cb62-27" aria-hidden="true" tabindex="-1"></a>best_metrics <span class="ot">&lt;-</span> forest_grid <span class="sc">|&gt;</span></span>
+<span id="cb62-28"><a href="#cb62-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select_best</span>(<span class="at">metric =</span> <span class="st">'rmse'</span>)</span>
+<span id="cb62-29"><a href="#cb62-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-30"><a href="#cb62-30" aria-hidden="true" tabindex="-1"></a>best_metrics</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+   mtry min_n .config        
+  &lt;int&gt; &lt;int&gt; &lt;chr&gt;          
+1     7     2 pre0_mod7_post0</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Finalizing workflow</span></span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>forest_final <span class="ot">&lt;-</span> forest_workflow <span class="sc">|&gt;</span></span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">finalize_workflow</span>(best_metrics)</span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Fitting model with training data</span></span>
+<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a>forest_fit <span class="ot">&lt;-</span> forest_final <span class="sc">|&gt;</span></span>
+<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit</span>(housing_train)</span>
+<span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-9"><a href="#cb64-9" aria-hidden="true" tabindex="-1"></a>forest_fit</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>══ Workflow [trained] ══════════════════════════════════════════════════════════
+Preprocessor: Recipe
+Model: rand_forest()
+
+── Preprocessor ────────────────────────────────────────────────────────────────
+1 Recipe Step
+
+• step_dummy()
+
+── Model ───────────────────────────────────────────────────────────────────────
+Ranger result
+
+Call:
+ ranger::ranger(x = maybe_data_frame(x), y = y, mtry = min_cols(~7L,      x), num.trees = 500, min.node.size = min_rows(~2L, x), importance = "impurity",      num.threads = 1, verbose = FALSE, seed = sample.int(10^5,          1)) 
+
+Type:                             Regression 
+Number of trees:                  500 
+Sample size:                      33903 
+Number of independent variables:  53 
+Mtry:                             7 
+Target node size:                 2 
+Variable importance mode:         impurity 
+Splitrule:                        variance 
+OOB prediction error (MSE):       121624346053 
+R squared (OOB):                  0.6559616 </code></pre>
+</div>
+</div>
+<p><em>Comparing models and finding the best fit</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Using last_fit to fit regression tree model to entire training set and comparing with test set</span></span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>last_tree <span class="ot">&lt;-</span> <span class="fu">last_fit</span>(</span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>  tree_final,</span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>  housing_split,</span>
+<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">metrics =</span> <span class="fu">metric_set</span>(</span>
+<span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a>    yardstick<span class="sc">::</span>rmse</span>
+<span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb66-8"><a href="#cb66-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb66-9"><a href="#cb66-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a><span class="co">#Using last_fit to fit random forest model to entire training set and comparing with test set</span></span>
+<span id="cb66-11"><a href="#cb66-11" aria-hidden="true" tabindex="-1"></a>last_forest <span class="ot">&lt;-</span> <span class="fu">last_fit</span>(</span>
+<span id="cb66-12"><a href="#cb66-12" aria-hidden="true" tabindex="-1"></a>  forest_final,</span>
+<span id="cb66-13"><a href="#cb66-13" aria-hidden="true" tabindex="-1"></a>  housing_split,</span>
+<span id="cb66-14"><a href="#cb66-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">metrics =</span> <span class="fu">metric_set</span>(</span>
+<span id="cb66-15"><a href="#cb66-15" aria-hidden="true" tabindex="-1"></a>    yardstick<span class="sc">::</span>rmse</span>
+<span id="cb66-16"><a href="#cb66-16" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb66-17"><a href="#cb66-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb66-18"><a href="#cb66-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-19"><a href="#cb66-19" aria-hidden="true" tabindex="-1"></a><span class="co">#Putting results in a tibble</span></span>
+<span id="cb66-20"><a href="#cb66-20" aria-hidden="true" tabindex="-1"></a>last_fit_results <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb66-21"><a href="#cb66-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>(last_tree) <span class="sc">|&gt;</span></span>
+<span id="cb66-22"><a href="#cb66-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">'Regression Tree'</span>),</span>
+<span id="cb66-23"><a href="#cb66-23" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb66-24"><a href="#cb66-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>(last_forest) <span class="sc">|&gt;</span></span>
+<span id="cb66-25"><a href="#cb66-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">'Random Forest'</span>)</span>
+<span id="cb66-26"><a href="#cb66-26" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb66-27"><a href="#cb66-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-28"><a href="#cb66-28" aria-hidden="true" tabindex="-1"></a>last_fit_results</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 5
+  .metric .estimator .estimate .config         model          
+  &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;           &lt;chr&gt;          
+1 rmse    standard     313118. pre0_mod0_post0 Regression Tree
+2 rmse    standard     355318. pre0_mod0_post0 Random Forest  </code></pre>
+</div>
+</div>
+<p><em>Our best model is the <strong>Regression Tree</strong> model! It has an RMSE of 313118.5, while the <strong>Random Forest</strong> model has an RMSE of 355015.0. We will use our <strong>Regression Tree</strong> model to fit our full data set.</em></p>
+<p><em>Saving the <strong>tree_final</strong> model for later use.</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(tree_final, <span class="at">file =</span> <span class="st">'tree_final.RData'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><em>Fitting the best model to the full data set</em></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>full_fit <span class="ot">&lt;-</span> tree_final <span class="sc">|&gt;</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit</span>(clean_data)</span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>full_fit</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>══ Workflow [trained] ══════════════════════════════════════════════════════════
+Preprocessor: Recipe
+Model: decision_tree()
+
+── Preprocessor ────────────────────────────────────────────────────────────────
+1 Recipe Step
+
+• step_dummy()
+
+── Model ───────────────────────────────────────────────────────────────────────
+n= 48433 
+
+node), split, n, deviance, yval
+      * denotes terminal node
+
+    1) root 48433 1.705973e+16  997898.2  
+      2) Regionname_Southern.Metropolitan&lt; 0.5 35884 6.038644e+15  866643.8  
+        4) Rooms&lt; 3.5 25071 2.846712e+15  782936.6  
+          8) Type_u&gt;=0.5 5207 2.912168e+14  575547.6  
+           16) Rooms&lt; 2.5 3920 1.284147e+14  525393.9  
+             32) Rooms&lt; 1.5 761 1.048416e+13  385775.5  
+               64) Distance&gt;=3.25 493 4.732446e+12  349122.7  
+                128) CouncilArea_Maribyrnong.City.Council&gt;=0.5 64 3.451680e+11  292546.9  
+                  256) Distance&gt;=6.35 24 5.380183e+10  255583.3  
+                    512) Propertycount&lt; 2840.5 7 8.933429e+09  233714.3 *
+                    513) Propertycount&gt;=2840.5 17 4.014212e+10  264588.2 *
+                  257) Distance&lt; 6.35 40 2.389002e+11  314725.0  
+                    514) Distance&lt; 5.7 32 1.589700e+11  298125.0  
+                     1028) Method_SP&lt; 0.5 23 1.257349e+11  281239.1  
+                       2056) Method_S&lt; 0.5 12 5.526800e+10  249000.0 *
+                       2057) Method_S&gt;=0.5 11 4.438841e+10  316409.1 *
+                     1029) Method_SP&gt;=0.5 9 9.917556e+09  341277.8 *
+                    515) Distance&gt;=5.7 8 3.584070e+10  381124.9 *
+                129) CouncilArea_Maribyrnong.City.Council&lt; 0.5 429 4.151864e+12  357562.9  
+                  258) Method_S&lt; 0.5 212 8.321932e+11  341942.9  
+                    516) Method_SP&lt; 0.5 100 3.133651e+11  318710.0  
+                     1032) Distance&gt;=4.6 72 2.530148e+11  308902.8  
+                       2064) Regionname_Western.Metropolitan&gt;=0.5 15 4.373573e+10  284133.3 *
+                       2065) Regionname_Western.Metropolitan&lt; 0.5 57 1.976544e+11  315421.1  
+                         4130) Propertycount&gt;=5400 48 1.677278e+11  310187.5  
+                           8260) CouncilArea_Darebin.City.Council&lt; 0.5 24 1.055680e+11  298770.8  
+                            16520) Method_VB&lt; 0.5 15 2.153890e+10  288700.0 *
+                            16521) Method_VB&gt;=0.5 9 7.997222e+10  315555.6 *
+                           8261) CouncilArea_Darebin.City.Council&gt;=0.5 24 5.590349e+10  321604.2  
+                            16522) Distance&gt;=6.15 17 4.390012e+10  314911.8 *
+                            16523) Distance&lt; 6.15 7 9.392857e+09  337857.1 *
+                         4131) Propertycount&lt; 5400 9 2.160000e+10  343333.3 *
+                     1033) Distance&lt; 4.6 28 3.561786e+10  343928.6  
+                       2066) Distance&lt; 3.8 18 2.047778e+10  338888.9 *
+                       2067) Distance&gt;=3.8 10 1.386000e+10  353000.0 *
+                    517) Method_SP&gt;=0.5 112 4.166578e+11  362686.5  
+                     1034) Propertycount&lt; 11284 80 2.164640e+11  354073.7  
+                       2068) Propertycount&gt;=6312 28 4.596630e+10  328621.2  
+                         4136) CouncilArea_Darebin.City.Council&lt; 0.5 19 2.399066e+10  317710.5 *
+                         4137) CouncilArea_Darebin.City.Council&gt;=0.5 9 1.493892e+10  351654.8 *
+                       2069) Propertycount&lt; 6312 52 1.425912e+11  367778.8  
+                         4138) Distance&lt; 7.65 34 4.545639e+10  358897.1  
+                           8276) CouncilArea_Moreland.City.Council&lt; 0.5 27 3.712957e+10  352314.8  
+                            16552) Regionname_Northern.Metropolitan&lt; 0.5 7 5.185357e+09  336357.1 *
+                            16553) Regionname_Northern.Metropolitan&gt;=0.5 20 2.953780e+10  357900.0  
+
+...
+and 3394 more lines.</code></pre>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
