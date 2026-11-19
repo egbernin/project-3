@@ -41,6 +41,6 @@ function(predictor){
 }
 
 #Three API calls
-#http://127.0.0.1:17984/pred?predictor=Regionname
-#http://127.0.0.1:17984/pred?predictor=Rooms
-#http://127.0.0.1:17984/pred?predictor=Distance
+#http://127.0.0.1:23966/pred?predictor=Regionname
+#http://127.0.0.1:23966/pred?predictor=Rooms
+#http://127.0.0.1:23966/pred?predictor=Distance
