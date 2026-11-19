@@ -2,8 +2,8 @@
 library(plumber)
 
 #Reading in data and fitting final model
-load('clean_data.RData')
-load('tree_final.RData')
+load('docs/clean_data.RData')
+load('docs/tree_final.RData')
 
 full_fit <- tree_final |>
   fit(clean_data)
