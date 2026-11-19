@@ -18,7 +18,7 @@ full_fit <- tree_final |>
 #* @get /info
 function(){
   'Emma Berninger,
-  URL for rendered GitHub Pages website: '
+  URL for rendered GitHub Pages website: https://egbernin.github.io/project-3/'
 }
 
 
