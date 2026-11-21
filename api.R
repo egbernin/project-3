@@ -1,5 +1,6 @@
 #Reading in necessary packages
 library(plumber)
+library(tidymodels)
 
 #Reading in data and fitting final model
 load('docs/clean_data.RData')
