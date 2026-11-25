@@ -3,8 +3,8 @@ library(plumber)
 library(tidymodels)
 
 #Reading in data and fitting final model
-load('../docs/clean_data.RData')
-load('../docs/tree_final.RData')
+load("../docs/clean_data.RData")
+load("../docs/tree_final.RData")
 
 full_fit <- tree_final |>
   fit(clean_data)
@@ -18,8 +18,7 @@ full_fit <- tree_final |>
 #Returning message for info endpoint
 #* @get /info
 function(){
-  'Emma Berninger,
-  URL for rendered GitHub Pages website: https://egbernin.github.io/project-3/'
+  "Emma Berninger, URL for rendered GitHub Pages website: https://egbernin.github.io/project-3/"
 }
 
 
@@ -30,13 +29,13 @@ function(predictor){
   if(is.numeric(clean_data[[predictor]])){
     data <- clean_data[[predictor]]
     value_num <- mean(data)
-    message_num <- paste('The mean of', predictor, 'is', value_num)
+    message_num <- paste("The mean of", predictor, "is", value_num)
     return(message_num)
   }else if(is.factor(clean_data[[predictor]])){
     factor_data <- clean_data[[predictor]]
     table_data <- table(factor_data)
     value_factor <- names(which.max(table_data))
-    message_factor <- paste('The most prevalent class of', predictor, 'is', value_factor)
+    message_factor <- paste("The most prevalent class of", predictor, "is", value_factor)
     return(message_factor)
   }
 }
