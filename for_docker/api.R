@@ -3,8 +3,8 @@ library(plumber)
 library(tidymodels)
 
 #Reading in data and fitting final model
-load("../docs/clean_data.RData")
-load("../docs/tree_final.RData")
+load("clean_data.RData")
+load("tree_final.RData")
 
 full_fit <- tree_final |>
   fit(clean_data)
